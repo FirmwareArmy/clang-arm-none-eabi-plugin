@@ -1,0 +1,19 @@
+#!/bin/bash
+
+xpl_path=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+cd ${xpl_path}/..
+
+set -e
+
+if [ ! -d clang/bin ]
+then
+	rm -rf clang
+	
+	clang_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.0/clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
+	curl $clang_url -L --progress-bar -o clang-arm.tar.xz
+	
+	tar -xvf clang-arm.tar.xz
+	mv clang+llvm-10.0.0-x86_64-linux-gnu-ubuntu-18.04 clang
+	rm clang-arm.tar.xz
+fi

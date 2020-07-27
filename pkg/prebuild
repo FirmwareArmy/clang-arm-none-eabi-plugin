@@ -1,0 +1,11 @@
+#!/bin/bash
+
+xpl_path=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+
+cd ${xpl_path}/..
+
+set -e
+
+# gcc is huge, we download it during package install
+rm -rf clang
+mkdir -p clang

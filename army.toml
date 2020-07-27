@@ -1,0 +1,16 @@
+name = "clang-arm-plugin"
+description = "clang 10.0.0 for arm"
+version = "10.0.0" 
+	
+[packaging]
+	include = [
+		"cmake",
+		"include",
+		"clang_arm_plugin",
+		"template",
+		"clang",
+		"__init__.py"
+	]
+	exclude = [
+		"*.pyc"
+	]
