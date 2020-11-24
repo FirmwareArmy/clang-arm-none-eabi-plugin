@@ -2,7 +2,7 @@ from army.api.click import verbose_option
 from army.api.project import load_project
 from army.api.debugtools import print_stack
 from army.api.log import log
-from army.army import cli, build
+from army import cli, build
 import click
 import os
 import sys

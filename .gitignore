@@ -130,3 +130,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /output/
+/compiler-rt.src/
+/compiler-rt/
+/gcc/

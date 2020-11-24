@@ -3,7 +3,7 @@ from army.api.project import load_project
 from army.api.debugtools import print_stack
 from army.api.log import log, get_log_level
 from army.api.package import load_project_packages
-from army.army import cli, build
+from army import cli, build
 import tornado.template as template
 import click
 import shutil
@@ -103,6 +103,7 @@ def compile(ctx, debug, instrument, jobs, **kwargs):
 
     # search for toolchain binaries
     locate_clang()
+    locate_gcc()
     
     # set build arch 
     arch, arch_pkg = get_arch(config, target, dependencies)
@@ -179,16 +180,16 @@ def locate_clang():
         print(f"clang was not found inside '{toolchain_path}', check plugin installation", file=sys.stderr)
         exit(1)
     os.putenv('arm_clang_path', arm_clang_path)
-
-#     # search for eabi
-#     arm_clang_eabi = None
-#     for folder in os.listdir(os.path.join(toolchain_path, arm_clang_path, 'lib', 'clang', 'arm-none-eabi')):
-#         arm_clang_eabi = folder
-#     if arm_clang_eabi is None:
-#         print(f"clang eabi not found inside '{toolchain_path}', check plugin installation", file=sys.stderr)
-#         exit(1)
-#     os.putenv('arm_clang_eabi', arm_clang_eabi)
     
+def locate_gcc():
+    global toolchain_path
+
+    # search for gcc folder
+    arm_gcc_path = 'gcc'
+    if os.path.exists(os.path.join(toolchain_path, arm_gcc_path))==False:
+        print(f"gcc was not found inside '{toolchain_path}', check plugin installation", file=sys.stderr)
+        exit(1)
+    os.putenv('arm_gcc_path', arm_gcc_path)
 
 def get_arch(config, target, dependencies):
     target_arch = target.arch

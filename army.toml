@@ -1,6 +1,6 @@
 name = "clang-arm-plugin"
-description = "clang 10.0.0 for arm"
-version = "10.0.0" 
+description = "clang 11.0.0 for arm"
+version = "11.0.0" 
 	
 [packaging]
 	include = [
@@ -9,6 +9,7 @@ version = "10.0.0"
 		"clang_arm_plugin",
 		"template",
 		"clang",
+		"gcc",
 		"__init__.py"
 	]
 	exclude = [

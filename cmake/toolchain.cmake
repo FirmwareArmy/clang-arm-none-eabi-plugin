@@ -12,6 +12,10 @@ if(NOT DEFINED ENV{arm_clang_path})
 	message(FATAL_ERROR "arm_clang_path not defined")
 endif()
 
+if(NOT DEFINED ENV{arm_gcc_path})
+	message(FATAL_ERROR "arm_gcc_path not defined")
+endif()
+
 if(NOT DEFINED ENV{arch_path})
 	message(FATAL_ERROR "arch_path not defined")
 endif()
@@ -21,6 +25,7 @@ set(TOOLCHAIN_PATH "$ENV{toolchain_path}")
 set(ARCH_PATH "$ENV{arch_path}")
 
 set(ARM_CLANG_PATH "${TOOLCHAIN_PATH}/$ENV{arm_clang_path}")
+set(ARM_GCC_PATH "${TOOLCHAIN_PATH}/$ENV{arm_gcc_path}")
 
 set(COMMON_FLAGS "")
 set(C_FLAGS "")
@@ -56,12 +61,12 @@ set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> rcs -o <TARGET> <LINK_FLAGS> <OBJECTS>"
 set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> rcs -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 
 # Recommended build flags
+#TODO armv6m-none-eabi 
 set(COMMON_FLAGS "${COMMON_FLAGS} -D__ARMCC_VERSION=0 --target=armv6m-none-eabi -mcpu=${CPU}")
 set(COMMON_FLAGS "${COMMON_FLAGS} -mthumb") # ARM instructions are 32 bits wide, and Thumb instructions are 16 wide. Thumb mode allows for code to be smaller, and can potentially be faster if the target has slow memory.
 #set(COMMON_FLAGS "${COMMON_FLAGS} -D${CHIP}")# TODO
 set(COMMON_FLAGS "${COMMON_FLAGS} -ffunction-sections")	# generates a separate ELF section for each function in the source file. The unused section elimination feature of the linker can then remove unused functions at link time.
 set(COMMON_FLAGS "${COMMON_FLAGS} -fdata-sections")
-set(COMMON_FLAGS "${COMMON_FLAGS} --param max-inline-insns-single=500")
 set(COMMON_FLAGS "${COMMON_FLAGS} -ffreestanding")	# directs the compiler to not assume that standard functions have their usual definition
 set(COMMON_FLAGS "${COMMON_FLAGS} ${CCACHE_SKIP} -save-temps")
 
@@ -71,7 +76,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG=1 -g3")
 	set(CMAKE_C_FLAGS_DEBUG "-DDEBUG=1 -g3")
  	# add stack protection options
- 	set(COMMON_FLAGS "${COMMON_FLAGS} -fstack-protector-all -fstack-protector -fstack-protector-strong")
+ 	#set(COMMON_FLAGS "${COMMON_FLAGS} -fstack-protector-all -fstack-protector -fstack-protector-strong")
 	set(LINKER_OPTIMISATION_FLAGS "")
 elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Os -DNDEBUG -g3")
@@ -114,9 +119,10 @@ set(CXX_FLAGS "${CXX_FLAGS} -fno-threadsafe-statics") 	# Do not emit the extra c
 set(CXX_FLAGS "${CXX_FLAGS} -fno-rtti")					# Disable generation of information about every class with virtual functions for use by the C++ run-time type identification features (dynamic_cast and typeid)
 set(CXX_FLAGS "${CXX_FLAGS} -fno-implement-inlines")	# To save space, do not emit out-of-line copies of inline functions controlled by #pragma implementation. This causes linker errors if these functions are not inlined everywhere they are called. 
 set(CXX_FLAGS "${CXX_FLAGS} -include ${TOOLCHAIN_PATH}/include/detect_alloc.h")	# disable memory allocation
-set(CXX_FLAGS "${CXX_FLAGS} -I /home/seb/git/gcc-arm-none-eabi-plugin/gcc/arm-none-eabi/include/c++/9.3.1")
-set(CXX_FLAGS "${CXX_FLAGS} -I /home/seb/git/gcc-arm-none-eabi-plugin/gcc/arm-none-eabi/include/c++/9.3.1/arm-none-eabi")
-set(CXX_FLAGS "${CXX_FLAGS} -I /home/seb/git/gcc-arm-none-eabi-plugin/gcc/arm-none-eabi/include")
+#TODO: the c++ stdlib compiled for arm-none-eabi is not in clang
+set(CXX_FLAGS "${CXX_FLAGS} -I ${ARM_GCC_PATH}/arm-none-eabi/include/c++/9.3.1")
+set(CXX_FLAGS "${CXX_FLAGS} -I ${ARM_GCC_PATH}/arm-none-eabi/include/c++/9.3.1/arm-none-eabi")
+set(CXX_FLAGS "${CXX_FLAGS} -I ${ARM_GCC_PATH}/arm-none-eabi/include")
 set(CXX_FLAGS "${CXX_FLAGS} -I ${TOOLCHAIN_PATH}/include")
 
 # Assembler flags
@@ -131,7 +137,7 @@ set(OBJCOPY_HEX_FLAGS "")
 set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
 #set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
-# set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
+#set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--entry=Reset_Handler")	# code entry point after reset 
@@ -139,14 +145,14 @@ set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--unresolved-symbols=report-all")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-common")
 # set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-section-align")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--start-group")
-#set(LINKER_FLAGS "${LINKER_FLAGS} -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--end-group")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -lm -lclang")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -lc")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--print-memory-usage")	# print generated firmware size
-set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
-set(LINKER_FLAGS "${LINKER_FLAGS} -L /home/seb/git/gcc-arm-none-eabi-plugin/gcc/arm-none-eabi/lib/thumb/v6-m/nofp")
+#set(LINKER_FLAGS "${LINKER_FLAGS} -lm -lclang")
+#set(LINKER_FLAGS "${LINKER_FLAGS} -lc")
+#set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
+#set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--print-memory-usage")	# print generated firmware size
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
+set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/arm-none-eabi/lib/thumb/v6-m/nofp")
+set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_CLANG_PATH}/lib")
 
 # remove leading whitespace to avoid error
 string(REGEX REPLACE "^ " "" LINKER_FLAGS "${LINKER_FLAGS}")
