@@ -56,15 +56,16 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(CMAKE_ASM_COMPILER "${ARM_CLANG_PATH}/bin/llvm-as")
 set(CMAKE_C_COMPILER "${ARM_CLANG_PATH}/bin/clang")
 set(CMAKE_CXX_COMPILER "${ARM_CLANG_PATH}/bin/clang++")
-#set(CMAKE_CXX_LINK_EXECUTABLE "${ARM_CLANG_PATH}/bin/clang -fuse-ld=lld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
-set(CMAKE_CXX_LINK_EXECUTABLE "${ARM_GCC_PATH}/bin/${GCC_PREFIX}-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+# set(CMAKE_CXX_LINK_EXECUTABLE "${ARM_CLANG_PATH}/bin/ld64.lld <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+set(CMAKE_CXX_LINK_EXECUTABLE "${ARM_CLANG_PATH}/bin/clang -fuse-ld=lld -v <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+# set(CMAKE_CXX_LINK_EXECUTABLE "${ARM_GCC_PATH}/bin/${GCC_PREFIX}-gcc <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
 # allow activate SSP
 set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> rcs -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> rcs -o <TARGET> <LINK_FLAGS> <OBJECTS>")
 
 # Recommended build flags
-#TODO armv6m-none-eabi 
-set(COMMON_FLAGS "${COMMON_FLAGS} -D__ARMCC_VERSION=0 --target=armv6m-none-eabi -mcpu=${CPU}")
+#TODO pass target and arch from plugin
+set(COMMON_FLAGS "${COMMON_FLAGS} -D__ARMCC_VERSION=0 --target=armv6m-none-eabi -mcpu=${CPU} -march=armv6m")
 set(COMMON_FLAGS "${COMMON_FLAGS} -mthumb") # ARM instructions are 32 bits wide, and Thumb instructions are 16 wide. Thumb mode allows for code to be smaller, and can potentially be faster if the target has slow memory.
 #set(COMMON_FLAGS "${COMMON_FLAGS} -D${CHIP}")# TODO
 set(COMMON_FLAGS "${COMMON_FLAGS} -ffunction-sections")	# generates a separate ELF section for each function in the source file. The unused section elimination feature of the linker can then remove unused functions at link time.
@@ -85,21 +86,21 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Os -DNDEBUG -g3")
 	set(LINKER_OPTIMISATION_FLAGS "-Os -DNDEBUG -g3")
 
-	# activate link time optimisations  -flto -fwhole-program -Os
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -flto -fuse-linker-plugin")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -flto -fuse-linker-plugin")
-	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")
+	# activate link time optimisations -flto -fwhole-program -Os
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -flto")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -flto")
+	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto")
 
  	set(COMMON_FLAGS "${COMMON_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
 else()
-	set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
-	set(CMAKE_C_FLAGS_RELEASE "-Os -DNDEBUG")
+	set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG")
+	set(CMAKE_C_FLAGS_RELEASE "-Oz -DNDEBUG")
 	set(LINKER_OPTIMISATION_FLAGS "")
 
-	# activate link time optimisations  -flto -fwhole-program -Os
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -fuse-linker-plugin")
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto -fuse-linker-plugin")
-	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")
+	# activate link time optimisations -flto -fwhole-program -Os
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
+	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
+	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto")
 
  	set(COMMON_FLAGS "${COMMON_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
 endif()
@@ -107,9 +108,10 @@ endif()
 
 # C flags
 set(C_FLAGS "${COMMON_FLAGS} ${C_FLAGS}")
-set(C_FLAGS "${C_FLAGS} -std=c11")
+set(C_FLAGS "${C_FLAGS} -std=c2x")
 set(C_FLAGS "${C_FLAGS} -Wall")		# activate all warnings
 set(C_FLAGS "${C_FLAGS} -mno-long-calls")	# long call is needed only if the target function lies outside of the 64-megabyte addressing range of the offset-based version of subroutine call instruction.
+set(C_FLAGS "${C_FLAGS} -I ${TOOLCHAIN_PATH}/include")
 
 # C++ flags
 set(CXX_FLAGS "${COMMON_FLAGS} ${CXX_FLAGS}")
@@ -135,46 +137,47 @@ set(ASM_FLAGS "${ASM_FLAGS} -Wall")
 # ROM options
 set(OBJCOPY_HEX_FLAGS "")
 
-# # Linker flags
-# set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
-# set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--entry=Reset_Handler")	# code entry point after reset 
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--unresolved-symbols=report-all")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-common")
-# # set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-section-align")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--start-group")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--end-group")
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -lm -lclang")
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -lc")
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
-# #set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--print-memory-usage")	# print generated firmware size
-# # set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
-# set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/arm-none-eabi/lib/thumb/v6-m/nofp")
-# set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_CLANG_PATH}/lib")
-
 # Linker flags
-set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
+#set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
+set(LINKER_FLAGS "${LINKER_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
-#set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
-set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
+set(LINKER_FLAGS "${LINKER_FLAGS} --target=armv6m-none-eabi -mcpu=${CPU} -march=${CPU}")
+set(LINKER_FLAGS "${LINKER_FLAGS} -gcc-toolchain ${ARM_GCC_PATH}")	# indicates to linker where to find gcc
+set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--entry=Reset_Handler")	# code entry point after reset 
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--unresolved-symbols=report-all")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-common")
-set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-section-align")
-set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--start-group")
-#set(LINKER_FLAGS "${LINKER_FLAGS} -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid")
-set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--end-group")
-set(LINKER_FLAGS "${LINKER_FLAGS} -lm -lgcc")
-set(LINKER_FLAGS "${LINKER_FLAGS} -lc")
+set(LINKER_FLAGS "${LINKER_FLAGS} -lc_nano")
 set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
-set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--print-memory-usage")	# print generated firmware size
+set(LINKER_FLAGS "${LINKER_FLAGS} -lgcc")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
+#set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
+set(LINKER_FLAGS "${LINKER_FLAGS} ${ARM_GCC_PATH}/lib/gcc/arm-none-eabi/9.3.1/thumb/v6-m/nofp/crti.o")
+set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/arm-none-eabi/lib/thumb/v6-m/nofp")
+set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/lib/gcc/arm-none-eabi/9.3.1/thumb/v6-m/nofp")
+set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_CLANG_PATH}/lib")
+
+# # Linker flags
+# set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
+# set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
+# #set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
+# set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--entry=Reset_Handler")	# code entry point after reset 
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--unresolved-symbols=report-all")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-common")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-section-align")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--start-group")
+# #set(LINKER_FLAGS "${LINKER_FLAGS} -u _sbrk -u link -u _close -u _fstat -u _isatty -u _lseek -u _read -u _write -u _exit -u kill -u _getpid")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--end-group")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -lm -lgcc")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -lc")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--print-memory-usage")	# print generated firmware size
+# set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
 
 # remove leading whitespace to avoid error
 string(REGEX REPLACE "^ " "" LINKER_FLAGS "${LINKER_FLAGS}")

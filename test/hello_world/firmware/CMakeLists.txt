@@ -1,4 +1,4 @@
-project(firmware C CXX ASM)
+project(firmware NONE)
 
 include_directories(
 	.
