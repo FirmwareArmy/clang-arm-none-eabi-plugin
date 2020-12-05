@@ -142,20 +142,21 @@ set(OBJCOPY_HEX_FLAGS "")
 set(LINKER_FLAGS "${LINKER_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} --target=armv6m-none-eabi -mcpu=${CPU} -march=${CPU}")
-set(LINKER_FLAGS "${LINKER_FLAGS} -gcc-toolchain ${ARM_GCC_PATH}")	# indicates to linker where to find gcc
+# set(LINKER_FLAGS "${LINKER_FLAGS} -gcc-toolchain ${ARM_GCC_PATH}")	# indicates to linker where to find gcc
 set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--entry=Reset_Handler")	# code entry point after reset 
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--unresolved-symbols=report-all")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--warn-common")
+set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--demangle")
 set(LINKER_FLAGS "${LINKER_FLAGS} -lc_nano")
 set(LINKER_FLAGS "${LINKER_FLAGS} -lnosys")
 set(LINKER_FLAGS "${LINKER_FLAGS} -lgcc")
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--no-dynamic-linker")	# inhibit output of an .interp section
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
 #set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map") # generate map file
-set(LINKER_FLAGS "${LINKER_FLAGS} ${ARM_GCC_PATH}/lib/gcc/arm-none-eabi/9.3.1/thumb/v6-m/nofp/crti.o")
+# set(LINKER_FLAGS "${LINKER_FLAGS} ${ARM_GCC_PATH}/lib/gcc/arm-none-eabi/9.3.1/thumb/v6-m/nofp/crti.o")
 set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/arm-none-eabi/lib/thumb/v6-m/nofp")
 set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_GCC_PATH}/lib/gcc/arm-none-eabi/9.3.1/thumb/v6-m/nofp")
 set(LINKER_FLAGS "${LINKER_FLAGS} -L ${ARM_CLANG_PATH}/lib")
