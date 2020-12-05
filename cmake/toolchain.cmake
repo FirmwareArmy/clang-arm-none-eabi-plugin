@@ -32,6 +32,8 @@ set(C_FLAGS "")
 set(CXX_FLAGS "")
 set(LINKER_FLAGS "")
 
+set(CMAKE_CXX_COMPILER_ID "clang")
+
 # CPU type
 include(${ARCH_PATH})
 
