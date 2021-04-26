@@ -1,0 +1,38 @@
+plugins:
+- name: compile-plugin
+  version: latest
+- name: toolchain-arm-none-eabi
+  version: 1.0.0
+
+tools:
+  toolchain:
+    name: gcc
+    definition: "{{package: toolchain-arm-none-eabi@1.0.0}}/cmake/gcc-arm-none-eabi.cmake"
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}"
+    
+  c:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-gcc"
+
+  c++:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-g++"
+
+  asm:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-as"
+
+  ld:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-gcc"
+
+  ar:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-ar"
+
+  objcopy:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-objcopy"
+
+  objdump:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-objdump"
+
+  size:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-size"
+
+  nm:
+    path: "{{package: toolchain-arm-none-eabi@1.0.0}}/gcc/bin/arm-none-eabi-nm"

@@ -1,0 +1,18 @@
+name: toolchain-arm-none-eabi
+description: toolchain for arm with gcc and clang
+version: 1.0.0
+
+dependencies:
+  compile-plugin: ~1.0.0
+
+packaging:
+  include:
+  - cmake
+  - include
+  - template
+  - clang
+  - gcc
+
+profiles:
+- clang-arm-none-eabi
+- gcc-arm-none-eabi

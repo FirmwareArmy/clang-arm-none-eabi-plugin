@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>clang-arm-none-eabi-plugin</name>
+	<name>toolchain-arm-none-eabi</name>
 	<comment></comment>
 	<projects>
 	</projects>
