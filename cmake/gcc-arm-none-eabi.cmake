@@ -14,7 +14,6 @@ include_army_package_file($ENV{arch_package} $ENV{arch_path})
 # Recommended build flags
 set(COMMON_FLAGS "${COMMON_FLAGS} -D__ARMCC_VERSION=0 -mcpu=${cpu}")
 set(COMMON_FLAGS "${COMMON_FLAGS} -mthumb") # ARM instructions are 32 bits wide, and Thumb instructions are 16 wide. Thumb mode allows for code to be smaller, and can potentially be faster if the target has slow memory.
-#set(COMMON_FLAGS "${COMMON_FLAGS} -D${CHIP}")# TODO
 # set(COMMON_FLAGS "${COMMON_FLAGS} -ffunction-sections")	# generates a separate ELF section for each function in the source file. The unused section elimination feature of the linker can then remove unused functions at link time.
 # set(COMMON_FLAGS "${COMMON_FLAGS} -fdata-sections")
 set(COMMON_FLAGS "${COMMON_FLAGS} --param max-inline-insns-single=500")
@@ -22,7 +21,6 @@ set(COMMON_FLAGS "${COMMON_FLAGS} -ffreestanding")	# directs the compiler to not
 set(COMMON_FLAGS "${COMMON_FLAGS} -fms-extensions")	# activate some extensions to the language
 set(COMMON_FLAGS "${COMMON_FLAGS} -funroll-loops")	# activate some extensions to the language
 set(COMMON_FLAGS "${COMMON_FLAGS} -fdiagnostics-color=always")	# activate color output
-
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	# override debug options
@@ -104,3 +102,9 @@ set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--cref -Xlinker -Map=../bin/firmware.map")
 
 # remove leading whitespace to avoid error with some linkers
 string(REGEX REPLACE "^ " "" LINKER_FLAGS "${LINKER_FLAGS}")
+
+# set build options
+set(CMAKE_COMMON_FLAGS "${COMMON_FLAGS}") 
+set(CMAKE_ASM_FLAGS "${ASM_FLAGS}")
+set(CMAKE_C_FLAGS "${C_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CXX_FLAGS}")
