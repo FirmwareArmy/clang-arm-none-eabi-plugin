@@ -22,17 +22,23 @@ set(COMMON_FLAGS "${COMMON_FLAGS} -mthumb") # ARM instructions are 32 bits wide,
 set(COMMON_FLAGS "${COMMON_FLAGS} -ffreestanding")	# directs the compiler to not assume that standard functions have their usual definition
 set(COMMON_FLAGS "${COMMON_FLAGS} -fcolor-diagnostics")	# activate color output
 
+
 # optimization flags 
-set(COMMON_OPTIMISATION_FLAGS "")
+set(COMMON_COMPILER_FLAGS "")
+
+# optimisation flags
+set(COMMON_OPTIMISATION_FLAGS "")	# for both linker and compiler
+set(COMPILER_OPTIMISATION_FLAGS "")	# for compiler only
+set(LINKER_OPTIMISATION_FLAGS "")	# for linker only
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -O0")		# no optimizations 
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Og")		# no optimizations 
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DDEBUG=1")	# turn on debug code
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -g3") 		# add debug informations
  	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -fstack-protector-all -fstack-protector -fstack-protector-strong")  	# add stack protection options
 
-	set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS}")
-	set(CMAKE_C_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Os") 		# activate size optimizations
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DNDEBUG")	# no debug code
@@ -41,17 +47,18 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -moutline") # activate machine outliner
  	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
 
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS}")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
+	
 else()
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Oz") 		# activate aggressive size optimizations
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DNDEBUG")	# no debug code
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -flto") 	# activate link time optimisations
 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -moutline") # activate machine outliner
- 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
 
-	set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS}")
-	set(CMAKE_C_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS} ${COMPILER_OPTIMISATION_FLAGS}")
 endif()
 
 
@@ -89,9 +96,8 @@ set(ASM_FLAGS "${ASM_FLAGS} -Wall")
 set(OBJCOPY_HEX_FLAGS "")
 
 # Linker flags
-set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
-# set(LINKER_FLAGS "${COMMON_FLAGS} ${COMMON_OPTIMISATION_FLAGS}")
-set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
+set(LINKER_FLAGS "${LINKER_FLAGS} ${COMMON_FLAGS}")
+set(LINKER_FLAGS "${LINKER_FLAGS} ${COMMON_OPTIMISATION_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} --target=armv6m-none-eabi")
 set(LINKER_FLAGS "${LINKER_FLAGS} -mcpu=${cpu} -march=${cpu}")
 # set(LINKER_FLAGS "${LINKER_FLAGS} -gcc-toolchain ${toolchain_path}/gcc")	# indicates to linker where to find gcc
