@@ -10,11 +10,12 @@ if [ ! -d clang/bin ]
 then
 	rm -rf clang
 	
-	clang_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+#	clang_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
+	clang_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz
 	curl $clang_url -L --progress-bar -o clang-arm.tar.xz
 	
 	tar -xvf clang-arm.tar.xz
-	mv clang+llvm-11.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
+	mv clang+llvm-12.0.0-x86_64-linux-gnu-ubuntu-16.04 clang
 	rm clang-arm.tar.xz
 fi
 
@@ -22,22 +23,24 @@ if [ ! -d gcc/arm-none-eabi ]
 then
 	rm -rf gcc
 	
-	gcc_url=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
+# 	gcc_url=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/9-2020q2/gcc-arm-none-eabi-9-2020-q2-update-x86_64-linux.tar.bz2
+	gcc_url=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/10-2020q4/gcc-arm-none-eabi-10-2020-q4-major-x86_64-linux.tar.bz2
 	curl $gcc_url -L --progress-bar -o gcc-arm-none-eabi.tar.bz2
 	
 	tar -xvf gcc-arm-none-eabi.tar.bz2
-	mv gcc-arm-none-eabi-9-2020-q2-update gcc
+	mv gcc-arm-none-eabi-10-2020-q4-major gcc
 	rm gcc-arm-none-eabi.tar.bz2
 fi
 
 # https://interrupt.memfault.com/blog/arm-cortexm-with-llvm-clang
 if [ ! -d compiler-rt ]
 then
-	compiler_rt_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/compiler-rt-11.0.0.src.tar.xz
+# 	compiler_rt_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-11.0.0/compiler-rt-11.0.0.src.tar.xz
+	compiler_rt_url=https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.0/compiler-rt-12.0.0.src.tar.xz
 	curl $compiler_rt_url -L --progress-bar -o compiler-rt.tar.xz
 	
 	tar -xvf compiler-rt.tar.xz
-	mv compiler-rt-11.0.0.src compiler-rt
+	mv compiler-rt-12.0.0.src compiler-rt
 	rm compiler-rt.tar.xz
 fi
 

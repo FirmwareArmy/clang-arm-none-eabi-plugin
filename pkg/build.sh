@@ -6,6 +6,8 @@ cd ${xpl_path}/..
 
 compiler_rt_path=${xpl_path}/../compiler-rt
 
+# created from https://interrupt.memfault.com/blog/arm-cortexm-with-llvm-clang
+
 export ARM_SYSROOT=$(readlink -f $(gcc/bin/arm-none-eabi-gcc -print-sysroot))
 export LLVM_BIN_PATH=$(readlink -f clang/bin)
 
@@ -21,7 +23,7 @@ echo $LLVM_BIN_PATH
 #   Cortex M3: armv7m-none-eabi
 #   Cortex M4, M7: armv7em-none-eabi
 #   Cortex M33: armv8m-none-eabi
-for NONE_EABI_TARGET in 'armv6m-none-eabi' 'armv7m-none-eabi' #'armv7em-none-eabi' 'armv8m-none-eabi'
+for NONE_EABI_TARGET in 'armv6m-none-eabi' 'armv7m-none-eabi' 'armv7em-none-eabi' #'armv8m-none-eabi'
 do
 	echo
 	echo "==== $NONE_EABI_TARGET ===="
@@ -55,6 +57,7 @@ do
 	-DCOMPILER_RT_INCLUDE_TESTS=OFF \
 	-DCMAKE_SYSROOT=${ARM_SYSROOT} ..
 	
+	make clean
 	make -j8
 	
 	cp -f ${compiler_rt_path}/build/lib/baremetal/*.a ${xpl_path}/../clang/lib/

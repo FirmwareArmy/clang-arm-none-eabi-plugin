@@ -1,5 +1,7 @@
 INCLUDE(CMakeForceCompiler)
 
+set(CMAKE_CXX_COMPILER_ID "GNU")
+
 # import army macros
 include($ENV{tools_path}/cmake/army.cmake)
 
@@ -22,36 +24,35 @@ set(COMMON_FLAGS "${COMMON_FLAGS} -fms-extensions")	# activate some extensions t
 set(COMMON_FLAGS "${COMMON_FLAGS} -funroll-loops")	# activate some extensions to the language
 set(COMMON_FLAGS "${COMMON_FLAGS} -fdiagnostics-color=always")	# activate color output
 
+# optimization flags 
+set(COMMON_OPTIMISATION_FLAGS "")
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	# override debug options
-	set(CMAKE_CXX_FLAGS_DEBUG "-DDEBUG=1 -g3")
-	set(CMAKE_C_FLAGS_DEBUG "-DDEBUG=1 -g3")
- 	# add stack protection options
- 	set(COMMON_FLAGS "${COMMON_FLAGS} -fstack-protector-all -fstack-protector -fstack-protector-strong")
-	set(LINKER_OPTIMISATION_FLAGS "")
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -O0")		# no optimizations 
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DDEBUG=1") # turn on debug code
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -g3") 		# add debug informations
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -fstack-protector-all -fstack-protector -fstack-protector-strong") # add stack protection options
+
+	set(CMAKE_CXX_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_DEBUG "${COMMON_OPTIMISATION_FLAGS}")
 elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Os -DNDEBUG -g3")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Os -DNDEBUG -g3")
-	set(LINKER_OPTIMISATION_FLAGS "-Os -DNDEBUG -g3")
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Os")		# activate size optimizations 
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DNDEBUG")	# no debug code
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -g3") 		# add debug informations
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")	# activate link time optimisations
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Werror=return-type")		# turn this to an error because missing return can cause bad behavior with optimizations
+#  	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -mpoke-function-name")		# Write the name of each function into the text section, directly preceding the function prologue
 
-	# activate link time optimisations  -flto -fwhole-program -Os
-	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -flto -fuse-linker-plugin")
-	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -flto -fuse-linker-plugin")
-	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")
-
-# 	set(COMMON_FLAGS "${COMMON_FLAGS} -mpoke-function-name") # Write the name of each function into the text section, directly preceding the function prologue
- 	set(COMMON_FLAGS "${COMMON_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${COMMON_OPTIMISATION_FLAGS}")
 else()
-	set(CMAKE_CXX_FLAGS_RELEASE "-Os -DNDEBUG")
-	set(CMAKE_C_FLAGS_RELEASE "-Os -DNDEBUG")
-	set(LINKER_OPTIMISATION_FLAGS "")
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Os")		# activate size optimizations 
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -DNDEBUG")	# no debug code
+	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")	# activate link time optimisations
+ 	set(COMMON_OPTIMISATION_FLAGS "${COMMON_OPTIMISATION_FLAGS} -Werror=return-type")		# turn this to an error because missing return can cause bad behavior with optimizations
 
-	# activate link time optimisations  -flto -fwhole-program -Os
-	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto -fuse-linker-plugin")
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto -fuse-linker-plugin")
-	set(LINKER_OPTIMISATION_FLAGS "${LINKER_OPTIMISATION_FLAGS} -flto -fuse-linker-plugin")
-
- 	set(COMMON_FLAGS "${COMMON_FLAGS} -Werror=return-type")	# turn this to an error because missing return can cause bad behavior with optimizations
+	set(CMAKE_CXX_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS}")
+	set(CMAKE_C_FLAGS_RELEASE "${COMMON_OPTIMISATION_FLAGS}")
 endif()
 
 
@@ -82,8 +83,9 @@ set(OBJCOPY_HEX_FLAGS "")
 
 # Linker flags
 set(LINKER_FLAGS "${COMMON_FLAGS} ${LINKER_FLAGS}")
+set(LINKER_FLAGS "${LINKER_FLAGS} ${COMMON_OPTIMISATION_FLAGS}")
 set(LINKER_FLAGS "${LINKER_FLAGS} ${LINKER_OPTIMISATION_FLAGS}")
-#set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
+# set(LINKER_FLAGS "${LINKER_FLAGS} -nostdlib")	# do not use the standard system startup files or libraries when linking, produces smaller code but use carefully as it skips global variables init
 set(LINKER_FLAGS "${LINKER_FLAGS} -specs=nano.specs -specs=nosys.specs")	# use newlib to decrease code size
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--gc-sections")		# garbage collect unused sections
 set(LINKER_FLAGS "${LINKER_FLAGS} -Wl,--check-sections")	# check section addresses for overlaps
