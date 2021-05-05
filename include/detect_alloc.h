@@ -8,5 +8,6 @@
 //}
 
 // forbid memory allocation keywords
-#pragma GCC poison new delete
+// delete is not restricted to memory allocation so we don't add it
+#pragma GCC poison new
 #pragma GCC poison malloc free
